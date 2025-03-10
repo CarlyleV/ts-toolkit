@@ -180,9 +180,9 @@ const testDescribes: TestFunctionDescribe[] = [
       {
         name: 'with multiple params',
         args: [
-          { id: '1', age: 12, hobbies: ['reading', 'swimming', 34, undefined] },
+          { id: '1', age: 12, name: 'John', city: '東京', hobbies: ['reading', 'swimming', 34, undefined] },
         ],
-        expected: '?id=1&age=12&hobbies=reading&hobbies=swimming&hobbies=34',
+        expected: '?id=1&age=12&name=John&city=%E6%9D%B1%E4%BA%AC&hobbies=reading&hobbies=swimming&hobbies=34',
       },
       {
         name: 'with undefined param',

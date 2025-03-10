@@ -110,12 +110,12 @@ export const generateSearchParams = <
         if (typeof v === 'undefined') {
           return;
         }
-        acc.push(`${key}=${v}`);
+        acc.push(`${key}=${encodeURI(`${v}`)}`);
       });
       return acc;
     }
 
-    acc.push(`${key}=${params[key]}`);
+    acc.push(`${key}=${encodeURI(`${params[key]}`)}`);
 
     return acc;
   }, []);
