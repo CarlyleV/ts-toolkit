@@ -1,7 +1,144 @@
 import type { TestFunctionDescribe } from '@/types/jest.ts';
-import { analyzeUrl, generateSearchParams, generateUrl } from '@/url/index.ts';
+import { analyzeUrl, extractHash, extractPathname, extractSearchParams, generateSearchParams, generateUrl } from '@/url/index.ts';
 
 const testDescribes: TestFunctionDescribe[] = [
+  {
+    name: 'extractPathname',
+    function: extractPathname,
+    cases: [
+      {
+        name: 'url',
+        args: ['http://localhost:3000/test/1/John/12'],
+        expected: '/test/1/John/12',
+      },
+      {
+        name: 'url with search params',
+        args: ['http://localhost:3000/test/1/John/12?name=John&age=12'],
+        expected: '/test/1/John/12',
+      },
+      {
+        name: 'url with hash',
+        args: ['http://localhost:3000/test/1/John/12#hash'],
+        expected: '/test/1/John/12',
+      },
+      {
+        name: 'url with search params and hash',
+        args: ['http://localhost:3000/test/1/John/12?name=John&age=12#hash'],
+        expected: '/test/1/John/12',
+      },
+      {
+        name: 'pathname',
+        args: ['/test/1/John/12'],
+        expected: '/test/1/John/12',
+      },
+      {
+        name: 'pathname with search params',
+        args: ['/test/1/John/12?name=John&age=12'],
+        expected: '/test/1/John/12',
+      },
+      {
+        name: 'pathname with hash',
+        args: ['/test/1/John/12#hash'],
+        expected: '/test/1/John/12',
+      },
+      {
+        name: 'pathname with search params and hash',
+        args: ['/test/1/John/12?name=John&age=12#hash'],
+        expected: '/test/1/John/12',
+      }
+    ]
+  },
+  {
+    name: 'extractSearchParams',
+    function: extractSearchParams,
+    cases: [
+      {
+        name: 'url',
+        args: ['http://localhost:3000/test/1/John/12'],
+        expected: new URLSearchParams(),
+      },{
+        name: 'url with search params',
+        args: ['http://localhost:3000/test/1/John/12?name=John&age=12'],
+        expected: new URLSearchParams('name=John&age=12'),
+      },
+      {
+        name: 'url with hash',
+        args: ['http://localhost:3000/test/1/John/12#hash'],
+        expected: new URLSearchParams(),
+      },
+      {
+        name: 'url with search params and hash',
+        args: ['http://localhost:3000/test/1/John/12?name=John&age=12#hash'],
+        expected: new URLSearchParams('name=John&age=12'),
+      },
+      {
+        name: 'pathname',
+        args: ['/test/1/John/12'],
+        expected: new URLSearchParams(),
+      },
+      {
+        name: 'pathname with search params',
+        args: ['/test/1/John/12?name=John&age=12'],
+        expected: new URLSearchParams('name=John&age=12'),
+      },
+      {
+        name: 'pathname with hash',
+        args: ['/test/1/John/12#hash'],
+        expected: new URLSearchParams(),
+      },
+      {
+        name: 'pathname with search params and hash',
+        args: ['/test/1/John/12?name=John&age=12#hash'],
+        expected: new URLSearchParams('name=John&age=12'),
+      }
+    ]
+  },
+  {
+    name: 'extractHash',
+    function: extractHash,
+    cases: [
+      {
+        name: 'url',
+        args: ['http://localhost:3000/test/1/John/12'],
+        expected: undefined,
+      },
+      {
+        name: 'url with search params',
+        args: ['http://localhost:3000/test/1/John/12?name=John&age=12'],
+        expected: undefined,
+      },
+      {
+        name: 'url with hash',
+        args: ['http://localhost:3000/test/1/John/12#hash'],
+        expected: 'hash',
+      },
+      {
+        name: 'url with search params and hash',
+        args: ['http://localhost:3000/test/1/John/12?name=John&age=12#hash'],
+        expected: 'hash',
+      },
+      {
+        name: 'pathname',
+        args: ['/test/1/John/12'],
+        expected: undefined,
+      },
+      {
+        name: 'pathname with search params',
+        args: ['/test/1/John/12?name=John&age=12'],
+        expected: undefined,
+      },
+      {
+        name: 'pathname with hash',
+        args: ['/test/1/John/12#hash'],
+        expected: 'hash',
+      },
+      {
+        name: 'pathname with search params and hash',
+        args: ['/test/1/John/12?name=John&age=12#hash'],
+        expected: 'hash',
+      }
+    ]
+  },
   {
     name: 'generateUrl',
     function: generateUrl,
@@ -59,64 +196,126 @@ const testDescribes: TestFunctionDescribe[] = [
     function: analyzeUrl,
     cases: [
       {
-        name: 'with hash',
+        name: 'url with hash',
         args: ['http://localhost/1/John/12#hash'],
         expected: {
+          pathname: '/1/John/12',
           searchParams: new URLSearchParams(),
-          hash: '#hash',
+          hash: 'hash',
         },
       },
 
       {
-        name: 'with search params',
+        name: 'url with search params',
         args: ['http://localhost/1/John/12?name=John&age=12'],
         expected: {
+          pathname: '/1/John/12',
           searchParams: new URLSearchParams('name=John&age=12'),
-          hash: '',
+          hash: undefined,
         },
       },
       {
-        name: 'with path params',
+        name: 'url with path params',
         args: ['http://localhost/test/1/John/12', '/test/:id/:name/:age'],
         expected: {
+          pathname: '/test/1/John/12',
           pathParams: { id: '1', name: 'John', age: '12' },
           searchParams: new URLSearchParams(),
-          hash: '',
+          hash: undefined,
         },
       },
       {
-        name: 'with path params and search params',
+        name: 'url with path params and search params',
         args: [
           'http://localhost/1/John/12?name=John&age=12',
           '/:id/:name/:age',
         ],
         expected: {
+          pathname: '/1/John/12',
           pathParams: { id: '1', name: 'John', age: '12' },
           searchParams: new URLSearchParams('name=John&age=12'),
-          hash: '',
+          hash: undefined,
         },
       },
       {
-        name: 'with path params and hash',
+        name: 'url with path params and hash',
         args: ['http://localhost/1/John/12#hash', '/:id/:name/:age'],
         expected: {
+          pathname: '/1/John/12',
           pathParams: { id: '1', name: 'John', age: '12' },
           searchParams: new URLSearchParams(),
-          hash: '#hash',
+          hash: 'hash',
         },
       },
       {
-        name: 'with path params and search params and hash',
+        name: 'url with path params and search params and hash',
         args: [
           'http://localhost/1/John/12?name=John&age=12#hash',
           '/:id/:name/:age',
         ],
         expected: {
+          pathname: '/1/John/12',
           pathParams: { id: '1', name: 'John', age: '12' },
           searchParams: new URLSearchParams('name=John&age=12'),
-          hash: '#hash',
+          hash: 'hash',
         },
       },
+      {
+        name: 'pathname',
+        args: ['/1/John/12'],
+        expected: {
+          pathname: '/1/John/12',
+          searchParams: new URLSearchParams(),
+          hash: undefined,
+        },
+      },
+      {
+        name: 'pathname with search params',
+        args: ['/1/John/12?name=John&age=12'],
+        expected: {
+          pathname: '/1/John/12',
+          searchParams: new URLSearchParams('name=John&age=12'),
+          hash: undefined,
+        }
+      },
+      {
+        name: 'pathname with hash',
+        args: ['/1/John/12#hash'],
+        expected: {
+          pathname: '/1/John/12',
+          searchParams: new URLSearchParams(),
+          hash: 'hash',
+        }
+      },
+      {
+        name: 'pathname with search params and hash',
+        args: ['/1/John/12?name=John&age=12#hash'],
+        expected: {
+          pathname: '/1/John/12',
+          searchParams: new URLSearchParams('name=John&age=12'),
+          hash: 'hash',
+        }
+      },
+      {
+        name: 'pathname with path params',
+        args: ['/test/1/John/12', '/test/:id/:name/:age'],
+        expected: {
+          pathname: '/test/1/John/12',
+          pathParams: { id: '1', name: 'John', age: '12' },
+          searchParams: new URLSearchParams(),
+          hash: undefined,
+        }
+      },
+      {
+        name: 'pathname with path params and search params and hash',
+        args: ['/test/1/John/12?name=John&age=12#hash', '/test/:id/:name/:age'],
+        expected: {
+          pathname: '/test/1/John/12',
+          pathParams: { id: '1', name: 'John', age: '12' },
+          searchParams: new URLSearchParams('name=John&age=12'),
+          hash: 'hash',
+        }
+      }
     ],
   },
 ];

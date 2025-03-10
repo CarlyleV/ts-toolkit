@@ -1,3 +1,59 @@
+const pathNameRegex = /(?<=\w)\/.*(?=\?)|(?<=\w)\/.*(?=#)|^\/.*(?=\?)|^\/.*(?=#)|^\/.*|(?<=\w)\/.*/;
+const searchParamsRegex = /(?<=\?).*(?=#)|(?<=\?).*/;
+const hashRegex = /(?<=#).*/;
+
+/**
+ * Extracts the pathname from a given URL.
+ *
+ * @example
+ * extractPathname('http://example.com/pathname?search=test#hash') // => '/pathname'
+ * extractPathname('http://example.com/pathname') // => '/pathname'
+ * extractPathname('/pathname?search=test#hash') // => '/pathname'
+ * extractPathname('/pathname') // => '/pathname'
+ *
+ * @param {string} url - The URL from which to extract the pathname.
+ * @returns {string | undefined} The extracted pathname. Returns undefined if no pathname is found.
+ */
+export const extractPathname = (url: string) => {
+  const matched = url.match(pathNameRegex)?.[0];
+  return matched;
+};
+
+/**
+ * Extracts the search parameters from a given URL.
+ *
+ * @example
+ * extractSearchParams('http://example.com/pathname?search=test#hash') // => URLSearchParams { 'search' => 'test' }
+ * extractSearchParams('http://example.com/pathname?search=test') // => URLSearchParams { 'search' => 'test' }
+ * extractSearchParams('/pathname?search=test#hash') // => URLSearchParams { 'search' => 'test' }
+ * extractSearchParams('/pathname?search=test') // => URLSearchParams { 'search' => 'test' }
+ *
+ * @param {string} url - The URL from which to extract the search parameters.
+ * @returns {URLSearchParams} The extracted search parameters.
+ */
+export const extractSearchParams = (url: string) => {
+  const matched = url.match(searchParamsRegex)?.[0];
+
+  return new URLSearchParams(matched);
+};
+
+/**
+ * Extracts the hash fragment from a given URL.
+ *
+ * @example
+ * extractHash('http://example.com/pathname?search=test#hash') // => 'hash'
+ * extractHash('http://example.com/pathname#hash') // => 'hash'
+ * extractHash('/pathname?search=test#hash') // => 'hash'
+ * extractHash('/pathname#hash') // => 'hash'
+ *
+ * @param {string} url - The URL from which to extract the hash fragment.
+ * @returns {string | undefined} The extracted hash fragment. Returns undefined if no hash fragment is found.
+ */
+export const extractHash = (url: string) => {
+  const matched = url.match(hashRegex)?.[0];
+  return matched;
+};
+
 /**
  * Replace any :key placeholders in a given URL with the corresponding values in the given object.
  *
@@ -72,37 +128,37 @@ export const generateSearchParams = <
 };
 
 /**
- * Analyze a URL and return an object with the following properties:
- * - pathParams: an object with path parameters as key-value pairs
- * - searchParams: a URLSearchParams object representing the search parameters
- * - hash: the hash of the URL
- *
- * If the 'template' parameter is not provided, the function will return an object with 'searchParams' and 'hash' properties.
- *
- * If the 'template' parameter is provided, the function will parse the URL's pathname according to the template and return an object with 'pathParams', 'searchParams', and 'hash' properties.
+ * Analyzes a given URL and extracts its pathname, search parameters, and hash fragment.
+ * Optionally, it can also extract path parameters based on a provided template.
  *
  * @example
- * analyzeUrl('http://localhost/1/John/12?name=John&age=12#hash') // => { pathParams: { id: '1', name: 'John', age: '12' }, searchParams: URLSearchParams { 'name' => 'John', 'age' => '12' }, hash: '#hash' }
- * analyzeUrl('http://localhost/1/John/12?name=John&age=12#hash', '/:id/:name/:age') // => { pathParams: { id: '1', name: 'John', age: '12' }, searchParams: URLSearchParams { 'name' => 'John', 'age' => '12' }, hash: '#hash' }
+ * analyzeUrl('http://example.com/pathname?search=test#hash')
+ * => { pathname: '/pathname', searchParams: URLSearchParams { 'search' => 'test' }, hash: 'hash' }
  *
- * @param {string | URL} url - the URL to analyze
- * @param {string} [template] - the template of the URL's pathname
- * @returns {Object} an object with the analyzed URL's properties
+ * analyzeUrl('http://example.com/pathname?search=test#hash', '/:id')
+ * => { pathname: '/pathname', pathParams: { id: 'pathname' }, searchParams: URLSearchParams { 'search' => 'test' }, hash: 'hash' }
+ *
+ * @param {string} url - The URL to analyze.
+ * @param {string} [template] - An optional template to extract path parameters.
+ * @returns {Object} An object containing the extracted pathname, search parameters, hash fragment, and optionally path parameters.
  */
-export const analyzeUrl = (url: string | URL, template?: `/${string}`) => {
-  const { pathname, searchParams, hash } = new URL(url);
+export const analyzeUrl = (url: string , template?: `/${string}`) => {
+  const pathname = extractPathname(url);
+  const searchParams = extractSearchParams(url);
+  const hash = extractHash(url);
 
-  if (typeof template === 'undefined') {
+  if (typeof template === 'undefined' || typeof pathname === 'undefined') {
     return {
+      pathname,
       searchParams,
       hash,
     };
   }
 
-  const splittedFormattedPathname = template.split('/');
+  const splittedTemplate = template.split('/');
   const splittedPathname = pathname.split('/');
 
-  const pathParams = splittedFormattedPathname.reduce<Record<string, string>>(
+  const pathParams = splittedTemplate.reduce<Record<string, string>>(
     (acc, path, index) => {
       if (path.startsWith(':')) {
         acc[path.slice(1)] = splittedPathname[index];
@@ -114,6 +170,7 @@ export const analyzeUrl = (url: string | URL, template?: `/${string}`) => {
   );
 
   return {
+    pathname,
     pathParams,
     searchParams,
     hash,
