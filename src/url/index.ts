@@ -1,4 +1,5 @@
-const pathNameRegex = /(?<=\w)\/.*(?=\?)|(?<=\w)\/.*(?=#)|^\/.*(?=\?)|^\/.*(?=#)|^\/.*|(?<=\w)\/.*/;
+const pathNameRegex =
+  /(?<=\w)\/.*(?=\?)|(?<=\w)\/.*(?=#)|^\/.*(?=\?)|^\/.*(?=#)|^\/.*|(?<=\w)\/.*/;
 const searchParamsRegex = /(?<=\?).*(?=#)|(?<=\?).*/;
 const hashRegex = /(?<=#).*/;
 
@@ -142,7 +143,7 @@ export const generateSearchParams = <
  * @param {string} [template] - An optional template to extract path parameters.
  * @returns {Object} An object containing the extracted pathname, search parameters, hash fragment, and optionally path parameters.
  */
-export const analyzeUrl = (url: string , template?: `/${string}`) => {
+export const analyzeUrl = (url: string, template?: `/${string}`) => {
   const pathname = extractPathname(url);
   const searchParams = extractSearchParams(url);
   const hash = extractHash(url);
